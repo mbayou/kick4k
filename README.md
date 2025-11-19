@@ -45,7 +45,7 @@ missing the build will fail with a descriptive error explaining how to provide t
 ### GitHub Actions configuration
 
 The release workflow in [`.github/workflows/publish-maven-central.yml`](.github/workflows/publish-maven-central.yml)
-targets a GitHub **environment** named `maven-central`. Create that environment under
+targets a GitHub **environment** named `Deployment`. Create that environment under
 `Settings → Environments`, add the `OSSRH_USERNAME` secret together with either
 `OSSRH_TOKEN` or `OSSRH_PASSWORD`, and the workflow will map them to the Gradle
 `MAVEN_USERNAME` / `MAVEN_PASSWORD` inputs before running `./gradlew publish`.
