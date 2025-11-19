@@ -30,6 +30,18 @@ dependencies {
 }
 ```
 
+## Publishing
+
+The project is configured to publish artifacts to OSSRH/Sonatype. Credentials can be provided via
+either Gradle properties or environment variables:
+
+- Gradle properties: `ossrhUsername` / `ossrhPassword` (for example in `~/.gradle/gradle.properties`).
+- Environment variables: `OSSRH_USERNAME` / `OSSRH_TOKEN` or the legacy `MAVEN_USERNAME` /
+  `MAVEN_PASSWORD` pair.
+
+Running `./gradlew publish` requires both a username and a password/token. If either value is
+missing the build will fail with a descriptive error explaining how to provide the credentials.
+
 ## Quick Start
 
 ### 1. Basic Setup

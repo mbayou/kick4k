@@ -1,3 +1,7 @@
+import org.gradle.api.GradleException
+import org.gradle.api.provider.Provider
+import org.gradle.api.publish.maven.tasks.PublishToMavenRepository
+
 plugins {
     kotlin("jvm") version "2.0.21"
     id("java-library")
@@ -41,6 +45,18 @@ tasks.test {
     useJUnitPlatform()
 }
 
+val ossrhUsername: Provider<String?> = providers.gradleProperty("ossrhUsername")
+    .orElse(providers.gradleProperty("mavenUsername"))
+    .orElse(providers.environmentVariable("OSSRH_USERNAME"))
+    .orElse(providers.environmentVariable("MAVEN_USERNAME"))
+    .orElse(providers.provider { null })
+
+val ossrhPassword: Provider<String?> = providers.gradleProperty("ossrhPassword")
+    .orElse(providers.gradleProperty("mavenPassword"))
+    .orElse(providers.environmentVariable("OSSRH_TOKEN"))
+    .orElse(providers.environmentVariable("MAVEN_PASSWORD"))
+    .orElse(providers.provider { null })
+
 publishing {
     publications {
         create<MavenPublication>("maven") {
@@ -64,8 +80,21 @@ publishing {
                 }
             )
             credentials {
-                username = System.getenv("OSSRH_USERNAME") ?: System.getenv("MAVEN_USERNAME")
-                password = System.getenv("OSSRH_TOKEN") ?: System.getenv("MAVEN_PASSWORD")
+                username = ossrhUsername.orNull ?: ""
+                password = ossrhPassword.orNull ?: ""
+            }
+        }
+    }
+}
+
+tasks.withType<PublishToMavenRepository>().configureEach {
+    if (repository.name == "OSSRH") {
+        doFirst {
+            if (ossrhUsername.orNull.isNullOrBlank() || ossrhPassword.orNull.isNullOrBlank()) {
+                throw GradleException(
+                    "OSSRH credentials are not configured. Set the 'ossrhUsername'/'ossrhPassword' Gradle " +
+                        "properties or the OSSRH_USERNAME/OSSRH_TOKEN (or MAVEN_USERNAME/MAVEN_PASSWORD) environment variables."
+                )
             }
         }
     }
