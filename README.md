@@ -22,19 +22,11 @@ A native Kotlin library for interacting with the Kick.com streaming platform API
 
 ### Gradle (Kotlin DSL)
 
-Add the repository to your `build.gradle` or `build.gradle.kts`:
+Add the dependency to your `build.gradle.kts` (or Groovy equivalent):
 
-```gradle
-repositories {
-    mavenCentral()
-    maven {
-        name = "teksusik"
-        url = uri("https://repo.teksusik.pl/snapshots")
-    }
-}
-
+```kotlin
 dependencies {
-    implementation("com.mbayou:kick4k:1.1.0-SNAPSHOT")
+    implementation("com.mbayou:kick4k:1.1.0")
 }
 ```
 
@@ -145,6 +137,10 @@ val subscription = EventSubscriptionRequest.builder()
 client.events().postEventsSubscription(subscription)
 ```
 
+## Acknowledgements
+
+Huge thanks to **teksusik** for creating the original Kick4J project that inspired this Kotlin rewrite.
+
 ### Supported Events
 
 - `chat.message.sent` - New chat messages
@@ -210,9 +206,7 @@ println("Category: ${category.name}")
 
 ## Publishing the library
 
-Kick4k already ships with a Gradle `maven-publish` configuration that targets the TekSUSik Reposilite instance under the `com.mbayou`
-group. Refer to [docs/PUBLISHING.md](docs/PUBLISHING.md) for a detailed checklist covering version bumps, credential setup, and the
-commands to push snapshot or release artifacts.
+Kick4k already ships with a Gradle `maven-publish` configuration that targets Maven Central via OSSRH. Refer to [docs/PUBLISHING.md](docs/PUBLISHING.md) for a detailed checklist covering version bumps, credential setup, and the commands to push snapshot or release artifacts, or to adapt the process for another repository host.
 
 ## Configuration
 
