@@ -65,8 +65,8 @@ val ossrhDecodedToken: Provider<Pair<String, String>?> = ossrhTokenRaw.map { tok
         }?: Pair("", "")
 }
 
-val ossrhDerivedUsername: Provider<String?> = ossrhDecodedToken.map { it.first }
-val ossrhDerivedPassword: Provider<String?> = ossrhDecodedToken.map { it.second }
+val ossrhDerivedUsername: Provider<String?> = ossrhDecodedToken.map { it?.first?: "" }
+val ossrhDerivedPassword: Provider<String?> = ossrhDecodedToken.map { it?.second?: "" }
 
 val ossrhUsername: Provider<String?> = providers.gradleProperty("ossrhTokenUsername")
     .orElse(providers.gradleProperty("ossrhUsername"))
