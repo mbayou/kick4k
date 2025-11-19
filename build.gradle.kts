@@ -16,7 +16,7 @@ kotlin {
     jvmToolchain(21)
 }
 
-group = "pl.teksusik"
+group = "com.mbayou"
 version = "1.1.0-SNAPSHOT"
 
 repositories {

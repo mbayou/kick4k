@@ -1,0 +1,35 @@
+package com.mbayou.kick4k.livestreams;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mbayou.kick4k.KickConfiguration;
+import com.mbayou.kick4k.api.ApiClient;
+import com.mbayou.kick4k.authorization.AuthorizationClient;
+
+import java.net.http.HttpClient;
+import java.util.List;
+
+public class LivestreamsClient extends ApiClient {
+    public LivestreamsClient(HttpClient httpClient, ObjectMapper mapper, KickConfiguration configuration, AuthorizationClient authorization) {
+        super(httpClient, mapper, configuration, authorization);
+    }
+
+    public Livestream getLivestream(Integer broadcasterUserId) {
+        return this.getLivestreams(GetLivestreamsRequest.builder()
+                .broadcasterUserId(broadcasterUserId).build())
+                .stream()
+                .findFirst()
+                .orElse(null);
+    }
+
+    public List<Livestream> getLivestreams(GetLivestreamsRequest request) {
+        return this.get(this.configuration.getLivestreams())
+                .queryParams(request)
+                .send(new TypeReference<>() {});
+    }
+
+    public LivestreamsStats getLivestreamsStats() {
+        return this.get(this.configuration.getLivestreamsStats())
+                .send(new TypeReference<>() {});
+    }
+}

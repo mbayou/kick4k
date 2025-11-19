@@ -34,7 +34,7 @@ repositories {
 }
 
 dependencies {
-    implementation("pl.teksusik:kick4k:1.1.0-SNAPSHOT")
+    implementation("com.mbayou:kick4k:1.1.0-SNAPSHOT")
 }
 ```
 
@@ -43,9 +43,9 @@ dependencies {
 ### 1. Basic Setup
 
 ```kotlin
-import pl.teksusik.kick4k.KickClient
-import pl.teksusik.kick4k.KickConfiguration
-import pl.teksusik.kick4k.authorization.RefreshTokenStore
+import com.mbayou.kick4k.KickClient
+import com.mbayou.kick4k.KickConfiguration
+import com.mbayou.kick4k.authorization.RefreshTokenStore
 
 class InMemoryTokenStore : RefreshTokenStore {
     private var token: String? = null
@@ -66,7 +66,7 @@ val client = KickClient(config)
 ### 2. OAuth Authentication
 
 ```kotlin
-import pl.teksusik.kick4k.authorization.Scope
+import com.mbayou.kick4k.authorization.Scope
 
 // Generate PKCE codes
 val codeVerifier = client.authorization().generateCodeVerifier()
@@ -108,7 +108,7 @@ println("Stream title updated to ${updated.streamTitle}")
 
 ### Event Webhooks
 
-Kick4j provides built-in webhook support for handling real-time events:
+Kick4k provides built-in webhook support for handling real-time events:
 
 ```java
 // Register event listeners
@@ -244,7 +244,7 @@ KickConfiguration config = KickConfiguration.builder()
 
 ## Error Handling
 
-Kick4j throws specific exceptions for different error conditions:
+Kick4k throws specific exceptions for different error conditions:
 
 ```java
 try {
