@@ -14,6 +14,9 @@ This project already includes Gradle's `maven-publish` plugin and is configured 
      ossrhPassword=<token>
      ```
    - or export them via environment variables `MAVEN_USERNAME` / `MAVEN_PASSWORD` for ad-hoc publishing or CI.
+   - For GitHub Actions, create an environment named `maven-central`, add `OSSRH_USERNAME` and either
+     `OSSRH_TOKEN` or `OSSRH_PASSWORD` as secrets, and the [`publish-maven-central.yml`](../.github/workflows/publish-maven-central.yml)
+     workflow will make them available when running `./gradlew publish`.
 3. **Verify tests**
    - Run `./gradlew clean test --console=plain --no-daemon` and make sure the suite passes before pushing artifacts.
 

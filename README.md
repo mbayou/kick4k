@@ -42,6 +42,16 @@ either Gradle properties or environment variables:
 Running `./gradlew publish` requires both a username and a password/token. If either value is
 missing the build will fail with a descriptive error explaining how to provide the credentials.
 
+### GitHub Actions configuration
+
+The release workflow in [`.github/workflows/publish-maven-central.yml`](.github/workflows/publish-maven-central.yml)
+targets a GitHub **environment** named `maven-central`. Create that environment under
+`Settings → Environments`, add the `OSSRH_USERNAME` secret together with either
+`OSSRH_TOKEN` or `OSSRH_PASSWORD`, and the workflow will map them to the Gradle
+`MAVEN_USERNAME` / `MAVEN_PASSWORD` inputs before running `./gradlew publish`.
+Without assigning the job to that environment the secrets are not exposed to the
+runner and the publish step will fail with the missing-credentials error.
+
 ## Quick Start
 
 ### 1. Basic Setup
