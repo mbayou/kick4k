@@ -1,6 +1,6 @@
-# Kick4j
+# Kick4k
 
-A comprehensive Java library for interacting with the Kick.com streaming platform API. Kick4j provides easy-to-use clients for all major Kick API endpoints, OAuth 2.0 authentication with PKCE support, and built-in webhook handling for real-time events.
+A native Kotlin library for interacting with the Kick.com streaming platform API. Kick4k provides easy-to-use clients for major Kick endpoints, OAuth 2.0 authentication with PKCE support, and a lightweight event dispatcher for real-time style workflows.
 
 ## Features
 
@@ -20,7 +20,7 @@ A comprehensive Java library for interacting with the Kick.com streaming platfor
 
 ## Installation
 
-### Gradle
+### Gradle (Kotlin DSL)
 
 Add the repository to your `build.gradle` or `build.gradle.kts`:
 
@@ -29,110 +29,79 @@ repositories {
     mavenCentral()
     maven {
         name = "teksusik"
-        url = "https://repo.teksusik.pl/snapshots"
+        url = uri("https://repo.teksusik.pl/snapshots")
     }
 }
 
 dependencies {
-    implementation 'pl.teksusik:kick4j:1.1.0-SNAPSHOT'
+    implementation("pl.teksusik:kick4k:1.1.0-SNAPSHOT")
 }
-```
-
-### Maven
-
-Add the repository to your `pom.xml`:
-
-```xml
-<repositories>
-    <repository>
-        <id>teksusik</id>
-        <url>https://repo.teksusik.pl/snapshots</url>
-    </repository>
-</repositories>
-
-<dependencies>
-    <dependency>
-        <groupId>pl.teksusik</groupId>
-        <artifactId>kick4j</artifactId>
-        <version>1.1.0-SNAPSHOT</version>
-    </dependency>
-</dependencies>
 ```
 
 ## Quick Start
 
 ### 1. Basic Setup
 
-```java
-import pl.teksusik.kick4j.KickClient;
-import pl.teksusik.kick4j.KickConfiguration;
-import pl.teksusik.kick4j.authorization.FileRefreshTokenStore;
+```kotlin
+import pl.teksusik.kick4k.KickClient
+import pl.teksusik.kick4k.KickConfiguration
+import pl.teksusik.kick4k.authorization.RefreshTokenStore
 
-// Configure the client
-KickConfiguration config = KickConfiguration.builder()
+class InMemoryTokenStore : RefreshTokenStore {
+    private var token: String? = null
+    override fun getRefreshToken(): String? = token
+    override fun notifyRefreshTokenRoll(newRefreshToken: String?) { token = newRefreshToken }
+}
+
+val config = KickConfiguration.builder()
     .clientId("your-client-id")
     .clientSecret("your-client-secret")
     .redirectUri("http://localhost:8080/callback")
-    .tokenStore(new FileRefreshTokenStore(Paths.get("refresh_token.txt")))
-    .build();
+    .tokenStore(InMemoryTokenStore())
+    .build()
 
-// Create the client
-KickClient client = new KickClient(config);
+val client = KickClient(config)
 ```
 
 ### 2. OAuth Authentication
 
-```java
-import pl.teksusik.kick4j.authorization.Scope;
-import static pl.teksusik.kick4j.authorization.AuthorizationClient.*;
+```kotlin
+import pl.teksusik.kick4k.authorization.Scope
 
 // Generate PKCE codes
-String codeVerifier = generateCodeVerifier();
-String codeChallenge = generateCodeChallenge(codeVerifier);
+val codeVerifier = client.authorization().generateCodeVerifier()
+val codeChallenge = client.authorization().generateCodeChallenge(codeVerifier)
 
 // Get authorization URL
-String authUrl = client.authorization().getAuthorizationUrl(
-    List.of(Scope.USER_READ, Scope.CHANNEL_READ, Scope.CHAT_WRITE),
+val authUrl = client.authorization().getAuthorizationUrl(
+    listOf(Scope.USER_READ, Scope.CHANNEL_READ, Scope.CHAT_WRITE),
     codeChallenge
-);
+)
 
-System.out.println("Visit: " + authUrl);
+println("Visit: $authUrl")
 
 // After user authorization, exchange code for tokens
-String authCode = "code-from-callback";
-OAuthTokenResponse tokens = client.authorization()
-    .exchangeCodeForToken(authCode, codeVerifier);
-
-client.authorization().setTokens(tokens);
+val tokens = client.authorization().exchangeCodeForToken("code-from-callback", codeVerifier)
+client.authorization().setTokens(tokens)
 ```
 
 ### 3. Basic API Usage
 
-```java
+```kotlin
 // Get current user
-User currentUser = client.users().getCurrentUser();
-System.out.println("Hello, " + currentUser.getName());
+val currentUser = client.users().getCurrentUser()
+println("Hello, ${currentUser.displayName}")
 
 // Get current channel
-Channel channel = client.channels().getCurrentChannel();
-System.out.println("Channel: " + channel.getSlug());
+val channel = client.channels().getCurrentChannel()
+println("Channel: ${channel.slug}")
 
 // Send a chat message
-PostChatMessageRequest chatRequest = PostChatMessageRequest.builder()
-    .broadcastUserId(channel.getBroadcasterUserId())
-    .content("Hello from Kick4j!")
-    .type(PostChatMessageRequest.Type.BOT)
-    .build();
-
-client.chat().postChatMessage(chatRequest);
+client.chat().postChatMessage("Hello from Kick4k!", channel.broadcasterUserId)
 
 // Update channel information
-UpdateChannelRequest updateRequest = UpdateChannelRequest.builder()
-    .streamTitle("New Stream Title")
-    .categoryId(12) 
-    .build();
-
-client.channels().updateChannel(updateRequest);
+val updated = client.channels().updateChannel("New Stream Title")
+println("Stream title updated to ${updated.streamTitle}")
 ```
 
 ## Advanced Usage
