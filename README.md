@@ -110,36 +110,39 @@ println("Stream title updated to ${updated.streamTitle}")
 
 Kick4k provides built-in webhook support for handling real-time events:
 
-```java
+```kotlin
+import com.mbayou.kick4k.events.EventSubscriptionRequest
+import com.mbayou.kick4k.events.handler.KickEventListener
+import com.mbayou.kick4k.events.type.ChannelFollowedEvent
+import com.mbayou.kick4k.events.type.ChatMessageSentEvent
+
 // Register event listeners
 client.eventDispatcher().registerListener(
-    ChatMessageSentEvent.class,
-    event -> {
-        System.out.println(event.getSender().getUsername() + 
-                          " said: " + event.getContent());
-    }
-);
+    ChatMessageSentEvent::class.java,
+    KickEventListener { event ->
+        println("${event.sender.username} said: ${event.content}")
+    },
+)
 
 client.eventDispatcher().registerListener(
-    ChannelFollowedEvent.class,
-    event -> {
-        System.out.println("New follower: " + 
-                          event.getFollower().getUsername());
-    }
-);
+    ChannelFollowedEvent::class.java,
+    KickEventListener { event ->
+        println("New follower: ${event.follower.username}")
+    },
+)
 
 // Start webhook receiver
-client.startWebhookReceiver("/webhooks", 8080);
+client.startWebhookReceiver("/webhooks", 8080)
 
 // Subscribe to events
-EventSubscriptionRequest subscription = EventSubscriptionRequest.builder()
-    .broadcasterUserId(currentUser.getUserId())
-    .addEvent(new EventSubscriptionRequest.Event("chat.message.sent", 1))
-    .addEvent(new EventSubscriptionRequest.Event("channel.followed", 1))
+val subscription = EventSubscriptionRequest.builder()
+    .broadcasterUserId(currentUser.userId)
+    .addEvent(EventSubscriptionRequest.Event("chat.message.sent", 1))
+    .addEvent(EventSubscriptionRequest.Event("channel.followed", 1))
     .method(EventSubscriptionRequest.Method.WEBHOOK)
-    .build();
+    .build()
 
-client.events().postEventsSubscription(subscription);
+client.events().postEventsSubscription(subscription)
 ```
 
 ### Supported Events
@@ -155,56 +158,54 @@ client.events().postEventsSubscription(subscription);
 
 ### Moderation
 
-```java
+```kotlin
 // Ban a user
-PostModerationBansRequest banRequest = PostModerationBansRequest.builder()
-    .broadcasterUserId(channel.getBroadcasterUserId())
+val banRequest = PostModerationBansRequest.builder()
+    .broadcasterUserId(channel.broadcasterUserId)
     .userId(123456)
     .duration(3600)
     .reason("Spam")
-    .build();
+    .build()
 
-client.moderation().postModerationBans(banRequest);
+client.moderation().postModerationBans(banRequest)
 
 // Unban a user
 client.moderation().deleteModerationBans(
-    channel.getBroadcasterUserId(), 
-    123456
-);
+    channel.broadcasterUserId,
+    123456,
+)
 ```
 
 ### Livestream Management
 
-```java
-// Get current livestream
-Livestream stream = client.livestreams()
-    .getLivestream(channel.getBroadcasterUserId());
+```kotlin
+val stream = client.livestreams()
+    .getLivestream(channel.broadcasterUserId)
 
-if (stream != null) {
-    System.out.println("Currently streaming: " + stream.getStreamTitle());
-    System.out.println("Viewers: " + stream.getViewerCount());
+stream?.let {
+    println("Currently streaming: ${it.streamTitle}")
+    println("Viewers: ${it.viewerCount}")
 }
 
-// Search livestreams
-GetLivestreamsRequest searchRequest = GetLivestreamsRequest.builder()
+val searchRequest = GetLivestreamsRequest.builder()
     .category(12) // Gaming
     .language("en")
     .limit(10)
     .sort(GetLivestreamsRequest.Sort.VIEWER_COUNT)
-    .build();
+    .build()
 
-List<Livestream> streams = client.livestreams().getLivestreams(searchRequest);
+val streams = client.livestreams().getLivestreams(searchRequest)
 ```
 
 ### Categories
 
-```java
+```kotlin
 // Search categories
-List<Category> categories = client.categories().getCategories("gaming");
+val categories = client.categories().getCategories("gaming")
 
 // Get specific category
-Category category = client.categories().getCategory(12);
-System.out.println("Category: " + category.getName());
+val category = client.categories().getCategory(12)
+println("Category: ${category.name}")
 ```
 
 ## Publishing the library
@@ -219,53 +220,54 @@ commands to push snapshot or release artifacts.
 
 Implement the `RefreshTokenStore` interface for custom token storage:
 
-```java
-public class DatabaseTokenStore implements RefreshTokenStore {
-    @Override
-    public String getRefreshToken() {
+```kotlin
+class DatabaseTokenStore(
+    private val database: TokenDao,
+) : RefreshTokenStore {
+    override fun getRefreshToken(): String? {
         // Retrieve from database
-        return database.getRefreshToken();
+        return database.getRefreshToken()
     }
 
-    @Override
-    public void notifyRefreshTokenRoll(String newRefreshToken) {
+    override fun notifyRefreshTokenRoll(newRefreshToken: String?) {
         // Store in database
-        database.saveRefreshToken(newRefreshToken);
+        database.saveRefreshToken(newRefreshToken)
     }
 }
 ```
 
 ### Custom Configuration
 
-```java
-KickConfiguration config = KickConfiguration.builder()
+```kotlin
+val config = KickConfiguration.builder()
     .clientId("your-client-id")
     .clientSecret("your-client-secret")
     .redirectUri("https://your-app.com/callback")
-    .tokenStore(new DatabaseTokenStore())
+    .tokenStore(DatabaseTokenStore())
     .baseUrl("https://api.kick.com/public/v1") // Custom API base URL
     .oAuthHost("https://id.kick.com") // Custom OAuth host
-    .build();
+    .build()
 ```
 
 ## Error Handling
 
 Kick4k throws specific exceptions for different error conditions:
 
-```java
+```kotlin
 try {
-    User user = client.users().getCurrentUser();
-} catch (ApiException e) {
-    System.err.println("API Error " + e.getErrorCode() + ": " + e.getPayload());
-} catch (OAuthTokenException e) {
-    System.err.println("Auth Error " + e.getErrorCode() + ": " + e.getPayload());
+    val user = client.users().getCurrentUser()
+    println("Fetched ${user.displayName}")
+} catch (apiException: ApiException) {
+    System.err.println("API error ${apiException.statusCode}: ${apiException.message}")
+} catch (tokenException: OAuthTokenException) {
+    System.err.println("Auth error ${tokenException.errorCode}: ${tokenException.payload}")
     // Handle token refresh or re-authentication
 }
 ```
 
 ## Requirements
 
-- Java 21 or higher
+- JDK 21 or higher (Kick4k targets Kotlin/JVM 21)
 - Valid Kick.com application credentials
 
 ## Dependencies
