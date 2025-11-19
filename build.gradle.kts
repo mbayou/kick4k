@@ -54,6 +54,7 @@ val ossrhUsername: Provider<String?> = providers.gradleProperty("ossrhUsername")
 val ossrhPassword: Provider<String?> = providers.gradleProperty("ossrhPassword")
     .orElse(providers.gradleProperty("mavenPassword"))
     .orElse(providers.environmentVariable("OSSRH_TOKEN"))
+    .orElse(providers.environmentVariable("OSSRH_PASSWORD"))
     .orElse(providers.environmentVariable("MAVEN_PASSWORD"))
     .orElse(providers.provider { null })
 
@@ -93,7 +94,7 @@ tasks.withType<PublishToMavenRepository>().configureEach {
             if (ossrhUsername.orNull.isNullOrBlank() || ossrhPassword.orNull.isNullOrBlank()) {
                 throw GradleException(
                     "OSSRH credentials are not configured. Set the 'ossrhUsername'/'ossrhPassword' Gradle " +
-                        "properties or the OSSRH_USERNAME/OSSRH_TOKEN (or MAVEN_USERNAME/MAVEN_PASSWORD) environment variables."
+                        "properties or the OSSRH_USERNAME/OSSRH_TOKEN (or OSSRH_PASSWORD / MAVEN_USERNAME / MAVEN_PASSWORD) environment variables."
                 )
             }
         }
