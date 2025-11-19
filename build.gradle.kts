@@ -54,8 +54,8 @@ val ossrhTokenRaw: Provider<String?> = providers.gradleProperty("ossrhBearerToke
 
 val ossrhDecodedToken: Provider<Pair<String, String>?> = ossrhTokenRaw.map { token ->
     token
-        .trim()
-        .takeIf { it.isNotEmpty() }
+        ?.trim()
+        ?.takeIf { it.isNotEmpty() }
         ?.let { candidate ->
             runCatching { String(Base64.getDecoder().decode(candidate)) }
                 .getOrNull()
