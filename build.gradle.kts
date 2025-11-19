@@ -55,15 +55,17 @@ publishing {
 
     repositories {
         maven {
-            name = "reposilite"
+            name = "OSSRH"
             url = uri(
-                "https://repo.teksusik.pl/${
-                    if (version.toString().endsWith("-SNAPSHOT")) "snapshots" else "releases"
-                }"
+                if (version.toString().endsWith("-SNAPSHOT")) {
+                    "https://oss.sonatype.org/content/repositories/snapshots/"
+                } else {
+                    "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
+                }
             )
             credentials {
-                username = findProperty("reposiliteUser") as String? ?: System.getenv("REPOSILITE_USER")
-                password = findProperty("reposiliteToken") as String? ?: System.getenv("REPOSILITE_TOKEN")
+                username = System.getenv("MAVEN_USERNAME")
+                password = System.getenv("MAVEN_PASSWORD")
             }
         }
     }

@@ -1,7 +1,7 @@
 # Kotlin Rewrite Diff Notes
 
 The original project is a Java client that spans multiple API domains (chat, moderation, livestreams, users, public keys, events, etc.)
-across `src/main/java/com/mbayou/kick4k` (formerly `pl/teksusik/kick4j`). Those sources alone add up to a little over 3,100 lines of code, and the accompanying JUnit
+across `src/main/java/com/mbayou/kick4k` (the legacy Kick4J codebase). Those sources alone add up to a little over 3,100 lines of code, and the accompanying JUnit
 suite in `src/test/java` contributes another ~770 lines.
 
 When we rebuilt the library around new Kotlin stubs, we removed that entire Java tree as well as the Java tests. The Kotlin replacements
