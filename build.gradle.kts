@@ -1,8 +1,10 @@
 plugins {
-    id("java")
+    kotlin("jvm") version "2.0.21"
     id("java-library")
     id("maven-publish")
 }
+
+val mockitoAgent = configurations.create("mockitoAgent")
 
 java {
     toolchain {
@@ -10,9 +12,11 @@ java {
     }
 }
 
-val mockitoAgent = configurations.create("mockitoAgent")
+kotlin {
+    jvmToolchain(21)
+}
 
-group = "pl.teksusik"
+group = "com.mbayou"
 version = "1.1.0-SNAPSHOT"
 
 repositories {
@@ -20,11 +24,13 @@ repositories {
 }
 
 dependencies {
+    implementation(kotlin("stdlib"))
     implementation("com.fasterxml.jackson.core:jackson-databind:2.19.2")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.19.2")
 
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
+    testImplementation(kotlin("test"))
     testImplementation("org.mockito:mockito-core:5.19.0")
 
     mockitoAgent("org.mockito:mockito-core:5.19.0") { isTransitive = false }
@@ -37,12 +43,12 @@ tasks.test {
 
 publishing {
     publications {
-        create<MavenPublication>("mavenJava") {
+        create<MavenPublication>("maven") {
             from(components["java"])
 
             pom {
-                name.set("Kick4j")
-                description.set("Java library for interaction with Kick.com streaming platform API")
+                name.set("Kick4k")
+                description.set("Kotlin library for interaction with the Kick.com streaming platform API")
             }
         }
     }

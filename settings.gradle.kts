@@ -1,2 +1,2 @@
-rootProject.name = "kick4j"
+rootProject.name = "kick4k"
 
