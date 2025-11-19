@@ -64,8 +64,8 @@ publishing {
                 }
             )
             credentials {
-                username = System.getenv("MAVEN_USERNAME")
-                password = System.getenv("MAVEN_PASSWORD")
+                username = System.getenv("OSSRH_USERNAME") ?: System.getenv("MAVEN_USERNAME")
+                password = System.getenv("OSSRH_TOKEN") ?: System.getenv("MAVEN_PASSWORD")
             }
         }
     }
