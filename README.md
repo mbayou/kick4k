@@ -207,6 +207,12 @@ Category category = client.categories().getCategory(12);
 System.out.println("Category: " + category.getName());
 ```
 
+## Publishing the library
+
+Kick4k already ships with a Gradle `maven-publish` configuration that targets the TekSUSik Reposilite instance under the `com.mbayou`
+group. Refer to [docs/PUBLISHING.md](docs/PUBLISHING.md) for a detailed checklist covering version bumps, credential setup, and the
+commands to push snapshot or release artifacts.
+
 ## Configuration
 
 ### Custom Token Storage
