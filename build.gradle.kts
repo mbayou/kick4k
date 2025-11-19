@@ -53,14 +53,16 @@ val ossrhTokenRaw: Provider<String?> = providers.gradleProperty("ossrhBearerToke
     .orElse(providers.provider { null })
 
 val ossrhDecodedToken: Provider<Pair<String, String>?> = ossrhTokenRaw.map { token ->
-    token.trim()
-        .let { candidate ->
+    token
+        .trim()
+        .takeIf { it.isNotEmpty() }
+        ?.let { candidate ->
             runCatching { String(Base64.getDecoder().decode(candidate)) }
                 .getOrNull()
                 ?.split(":", limit = 2)
                 ?.takeIf { it.size == 2 }
                 ?.let { it[0] to it[1] }
-        }!!
+        }?: Pair("", "")
 }
 
 val ossrhDerivedUsername: Provider<String?> = ossrhDecodedToken.map { it.first }
