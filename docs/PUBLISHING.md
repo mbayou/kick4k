@@ -8,15 +8,23 @@ This project already includes Gradle's `maven-publish` plugin and is configured 
    - Keep `version` in [`build.gradle.kts`](../build.gradle.kts) suffixed with `-SNAPSHOT` while iterating.
    - Before a public release, drop the `-SNAPSHOT` suffix and commit the change.
 2. **Set credentials**
-   - Configure your OSSRH username/token either in `~/.gradle/gradle.properties`:
+   - Generate a publish token in https://central.sonatype.com/ under `Account → Security → Access Tokens`.
+   - Copy the exact `Authorization` header that the portal displays (`Bearer <base64 tokenName:tokenSecret>`) and feed it
+     to Gradle via either:
      ```properties
-     ossrhUsername=<username>
-     ossrhPassword=<token>
+     # ~/.gradle/gradle.properties or repo-local gradle.properties
+     ossrhAuthHeaderName=Authorization
+     ossrhAuthHeaderValue=Bearer ZXhhbXBsZV91c2VybmFtZTpleGFtcGxlX3Bhc3N3b3Jk
      ```
-   - or export them via environment variables `MAVEN_USERNAME` / `MAVEN_PASSWORD` for ad-hoc publishing or CI.
-   - For GitHub Actions, create an environment named `Deployment`, add `OSSRH_USERNAME` and either
-     `OSSRH_TOKEN` or `OSSRH_PASSWORD` as secrets, and the [`publish-maven-central.yml`](../.github/workflows/publish-maven-central.yml)
-     workflow will make them available when running `./gradlew publish`.
+     or environment variables:
+     ```bash
+     export OSSRH_AUTH_HEADER_VALUE='Bearer ZXhhbXBsZV91c2VybmFtZTpleGFtcGxlX3Bhc3N3b3Jk'
+     # OSSRH_TOKEN is also accepted for convenience
+     export OSSRH_TOKEN='Bearer ZXhhbXBsZV91c2VybmFtZTpleGFtcGxlX3Bhc3N3b3Jk'
+     ```
+   - For GitHub Actions, create an environment named `Deployment`, add the same header value as a secret
+     (`OSSRH_AUTH_HEADER_VALUE` or `OSSRH_TOKEN`), and the [`publish-maven-central.yml`](../.github/workflows/publish-maven-central.yml)
+     workflow will expose it to `./gradlew publish`.
 3. **Verify tests**
    - Run `./gradlew clean test --console=plain --no-daemon` and make sure the suite passes before pushing artifacts.
 

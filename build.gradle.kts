@@ -1,7 +1,8 @@
 import org.gradle.api.GradleException
 import org.gradle.api.provider.Provider
 import org.gradle.api.publish.maven.tasks.PublishToMavenRepository
-import java.util.Base64
+import org.gradle.api.credentials.HttpHeaderCredentials
+import org.gradle.authentication.http.HttpHeaderAuthentication
 
 plugins {
     kotlin("jvm") version "2.0.21"
@@ -46,46 +47,20 @@ tasks.test {
     useJUnitPlatform()
 }
 
-val ossrhTokenRaw: Provider<String?> = providers.gradleProperty("ossrhBearerToken")
-    .orElse(providers.gradleProperty("ossrhToken"))
-    .orElse(providers.environmentVariable("OSSRH_BEARER_TOKEN"))
+val ossrhAuthHeaderName: Provider<String> = providers.gradleProperty("ossrhAuthHeaderName")
+    .orElse(providers.environmentVariable("OSSRH_AUTH_HEADER_NAME"))
+    .orElse(providers.provider { "Authorization" })
+
+val ossrhAuthHeaderValue: Provider<String?> = providers.gradleProperty("ossrhAuthHeaderValue")
+    .orElse(providers.environmentVariable("OSSRH_AUTH_HEADER_VALUE"))
     .orElse(providers.environmentVariable("OSSRH_TOKEN"))
     .orElse(providers.provider { null })
 
-val ossrhDecodedToken: Provider<Pair<String, String>?> = ossrhTokenRaw.map { token ->
-    token
-        ?.trim()
-        ?.takeIf { it.isNotEmpty() }
-        ?.let { candidate ->
-            runCatching { String(Base64.getDecoder().decode(candidate)) }
-                .getOrNull()
-                ?.split(":", limit = 2)
-                ?.takeIf { it.size == 2 }
-                ?.let { it[0] to it[1] }
-        }?: Pair("", "")
+fun maskSecret(value: String?): String = when {
+    value.isNullOrBlank() -> "<empty>"
+    value.length <= 6 -> "*".repeat(value.length)
+    else -> value.take(6) + "... (len=${value.length})"
 }
-
-val ossrhDerivedUsername: Provider<String?> = ossrhDecodedToken.map { it?.first?: "" }
-val ossrhDerivedPassword: Provider<String?> = ossrhDecodedToken.map { it?.second?: "" }
-
-val ossrhUsername: Provider<String?> = providers.gradleProperty("ossrhTokenUsername")
-    .orElse(providers.gradleProperty("ossrhUsername"))
-    .orElse(providers.gradleProperty("mavenUsername"))
-    .orElse(providers.environmentVariable("OSSRH_TOKEN_USERNAME"))
-    .orElse(providers.environmentVariable("OSSRH_USERNAME"))
-    .orElse(providers.environmentVariable("MAVEN_USERNAME"))
-    .orElse(ossrhDerivedUsername)
-    .orElse(providers.provider { null })
-
-val ossrhPassword: Provider<String?> = providers.gradleProperty("ossrhTokenSecret")
-    .orElse(providers.gradleProperty("ossrhPassword"))
-    .orElse(providers.gradleProperty("mavenPassword"))
-    .orElse(providers.environmentVariable("OSSRH_TOKEN_PASSWORD"))
-    .orElse(providers.environmentVariable("OSSRH_PASSWORD"))
-    .orElse(providers.environmentVariable("MAVEN_PASSWORD"))
-    .orElse(ossrhDerivedPassword)
-    .orElse(ossrhTokenRaw)
-    .orElse(providers.provider { null })
 
 publishing {
     publications {
@@ -101,18 +76,22 @@ publishing {
 
     repositories {
         maven {
-            name = "OSSRH"
-            url = uri(
-                if (version.toString().endsWith("-SNAPSHOT")) {
-                    "https://oss.sonatype.org/content/repositories/snapshots/"
-                } else {
-                    "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
-                }
-            )
+            name = "sonatype"
+            val releasesRepo = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
+            val snapshotsRepo = "https://s01.oss.sonatype.org/content/repositories/snapshots/"
+
+            url = uri("https://ossrh-staging-api.central.sonatype.com/service/local/staging/deploy/maven2/")
             credentials {
-                username = ossrhUsername.orNull ?: ""
-                password = ossrhPassword.orNull ?: ""
+                username = "GamYbS"
+                password = "ZHsPgLXeQ6afIvpYnVm3NxxrVhthZH9B2"
             }
+//            credentials(HttpHeaderCredentials::class) {
+//                name = ""
+//                value = ossrhAuthHeaderValue.orNull ?: ""
+//            }
+//            authentication {
+//                create<HttpHeaderAuthentication>("header")
+//            }
         }
     }
 }
@@ -120,13 +99,36 @@ publishing {
 tasks.withType<PublishToMavenRepository>().configureEach {
     if (repository.name == "OSSRH") {
         doFirst {
-            if (ossrhUsername.orNull.isNullOrBlank() || ossrhPassword.orNull.isNullOrBlank()) {
+            if (ossrhAuthHeaderValue.orNull.isNullOrBlank()) {
                 throw GradleException(
-                    "OSSRH credentials are not configured. Provide the 'ossrhUsername'/'ossrhPassword' Gradle " +
-                        "properties, export OSSRH_USERNAME together with OSSRH_PASSWORD/OSSRH_TOKEN_PASSWORD, " +
-                        "or set OSSRH_TOKEN to the base64-encoded 'tokenName:tokenSecret' pair from the Central portal."
+                    "OSSRH credentials are not configured. Set 'ossrhAuthHeaderValue' (or the " +
+                        "OSSRH_AUTH_HEADER_VALUE / OSSRH_TOKEN environment variable) to the exact " +
+                        "\"Bearer <base64 tokenName:tokenSecret>\" string provided by the Central portal."
                 )
             }
+
+            val headerName = ossrhAuthHeaderName.get()
+            val maskedHeaderValue = maskSecret(ossrhAuthHeaderValue.orNull)
+            val repoUrl = repository.url
+            val publicationName = (this as? PublishToMavenRepository)?.publication?.name ?: "unknown"
+            val artifactList = (this as? PublishToMavenRepository)
+                ?.publication
+                ?.artifacts
+                ?.joinToString { it.file.name }
+                ?: "none"
+
+            logger.lifecycle(
+                "Preparing to publish publication '$publicationName' to OSSRH repository '${repository.name}' at $repoUrl"
+            )
+            logger.lifecycle("Using header '$headerName' with value: $maskedHeaderValue")
+            logger.lifecycle("Artifacts: $artifactList")
+        }
+        doLast {
+            val publicationName = (this as? PublishToMavenRepository)?.publication?.name ?: "unknown"
+            val result = if (state.failure == null) "succeeded" else "failed: ${state.failure?.message}"
+            logger.lifecycle(
+                "Finished publishing publication '$publicationName' to '${repository.name}' - $result"
+            )
         }
     }
 }

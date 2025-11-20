@@ -1,4 +1,4 @@
-# Kick4k
+# Kick4k [![](https://jitpack.io/v/mbayou/kick4k.svg)](https://jitpack.io/#mbayou/kick4k)
 
 A native Kotlin library for interacting with the Kick.com streaming platform API. Kick4k provides easy-to-use clients for major Kick endpoints, OAuth 2.0 authentication with PKCE support, and a lightweight event dispatcher for real-time style workflows.
 
@@ -32,12 +32,24 @@ dependencies {
 
 ## Publishing
 
-The project is configured to publish artifacts to OSSRH/Sonatype. Credentials can be provided via
-either Gradle properties or environment variables:
+The project is configured to publish artifacts to OSSRH/Sonatype using the **Portal Publisher API**. Generate a publish token
+in the Central Portal (`Account → Security → Access Tokens`) and copy the exact `Authorization` header string shown there
+(`Bearer <base64 tokenName:tokenSecret>`). Supply that value to Gradle via one of the following:
 
-- Gradle properties: `ossrhUsername` / `ossrhPassword` (for example in `~/.gradle/gradle.properties`).
-- Environment variables: `OSSRH_USERNAME` with either `OSSRH_TOKEN` or `OSSRH_PASSWORD`, or the legacy `MAVEN_USERNAME` /
-  `MAVEN_PASSWORD` pair.
+- Gradle properties (`~/.gradle/gradle.properties` or the repo-local `gradle.properties`):
+  ```properties
+  ossrhAuthHeaderName=Authorization
+  ossrhAuthHeaderValue=Bearer ZXhhbXBsZV91c2VybmFtZTpleGFtcGxlX3Bhc3N3b3Jk
+  ```
+- Environment variables before running Gradle:
+  ```bash
+  export OSSRH_AUTH_HEADER_VALUE='Bearer ZXhhbXBsZV91c2VybmFtZTpleGFtcGxlX3Bhc3N3b3Jk'
+  # or reuse the OSSRH_TOKEN secret if you already store the same string there
+  export OSSRH_TOKEN='Bearer ZXhhbXBsZV91c2VybmFtZTpleGFtcGxlX3Bhc3N3b3Jk'
+  ```
+
+The header name defaults to `Authorization`, but you can override it via `ossrhAuthHeaderName` / `OSSRH_AUTH_HEADER_NAME`
+if Sonatype changes the requirement in the future.
 
 Running `./gradlew publish` requires both a username and a password/token. If either value is
 missing the build will fail with a descriptive error explaining how to provide the credentials.
@@ -45,12 +57,11 @@ missing the build will fail with a descriptive error explaining how to provide t
 ### GitHub Actions configuration
 
 The release workflow in [`.github/workflows/publish-maven-central.yml`](.github/workflows/publish-maven-central.yml)
-targets a GitHub **environment** named `Deployment`. Create that environment under
-`Settings → Environments`, add the `OSSRH_USERNAME` secret together with either
-`OSSRH_TOKEN` or `OSSRH_PASSWORD`, and the workflow will map them to the Gradle
-`MAVEN_USERNAME` / `MAVEN_PASSWORD` inputs before running `./gradlew publish`.
-Without assigning the job to that environment the secrets are not exposed to the
-runner and the publish step will fail with the missing-credentials error.
+targets a GitHub **environment** named `Deployment`. Create that environment under `Settings → Environments`, add a single
+secret such as `OSSRH_AUTH_HEADER_VALUE` (or reuse `OSSRH_TOKEN`) containing the exact `Bearer <...>` string from the
+Central portal, and the workflow will pass it through to Gradle before running `./gradlew publish`. Without assigning the
+job to that environment the secrets are not exposed to the runner and the publish step will fail with the
+missing-credentials error.
 
 ## Quick Start
 
