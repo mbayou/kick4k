@@ -51,6 +51,8 @@ Every push to GitHub can be built on JitPack; tagging a release (for example `v1
 
 ## Quick Start
 
+Looking for a deeper walkthrough of OAuth, webhooks, and the major APIs? Check the [Usage Guide](docs/USAGE.md).
+
 ### 1. Basic Setup
 
 ```kotlin
