@@ -1,59 +1,38 @@
 # Publishing Kick4k
 
-This project already includes Gradle's `maven-publish` plugin and is configured to push artifacts to Maven Central via OSSRH under the `com.mbayou` group. Use the following checklist whenever you need to publish a new build of the library.
+Kick4k is released through [JitPack](https://jitpack.io/#mbayou/kick4k). Rather than pushing artifacts to Maven
+Central, JitPack builds straight from tagged commits in this repository and serves them as
+`com.github.mbayou:kick4k:<version>`. Use the following checklist whenever you want to cut a new version.
 
-## 1. Prerequisites
+## 1. Prepare the release
 
-1. **Choose the right version**
-   - Keep `version` in [`build.gradle.kts`](../build.gradle.kts) suffixed with `-SNAPSHOT` while iterating.
-   - Before a public release, drop the `-SNAPSHOT` suffix and commit the change.
-2. **Set credentials**
-   - Generate a publish token in https://central.sonatype.com/ under `Account → Security → Access Tokens`.
-   - Copy the exact `Authorization` header that the portal displays (`Bearer <base64 tokenName:tokenSecret>`) and feed it
-     to Gradle via either:
-     ```properties
-     # ~/.gradle/gradle.properties or repo-local gradle.properties
-     ossrhAuthHeaderName=Authorization
-     ossrhAuthHeaderValue=Bearer ZXhhbXBsZV91c2VybmFtZTpleGFtcGxlX3Bhc3N3b3Jk
-     ```
-     or environment variables:
-     ```bash
-     export OSSRH_AUTH_HEADER_VALUE='Bearer ZXhhbXBsZV91c2VybmFtZTpleGFtcGxlX3Bhc3N3b3Jk'
-     # OSSRH_TOKEN is also accepted for convenience
-     export OSSRH_TOKEN='Bearer ZXhhbXBsZV91c2VybmFtZTpleGFtcGxlX3Bhc3N3b3Jk'
-     ```
-   - For GitHub Actions, create an environment named `Deployment`, add the same header value as a secret
-     (`OSSRH_AUTH_HEADER_VALUE` or `OSSRH_TOKEN`), and the [`publish-maven-central.yml`](../.github/workflows/publish-maven-central.yml)
-     workflow will expose it to `./gradlew publish`.
-3. **Verify tests**
-   - Run `./gradlew clean test --console=plain --no-daemon` and make sure the suite passes before pushing artifacts.
+1. **Pick the version**
+   - Update the `version` in [`build.gradle.kts`](../build.gradle.kts) and any docs/snippets if the API changed.
+   - Commit the change.
+2. **Run the tests**
+   - `./gradlew clean build --console=plain` must succeed on a clean checkout.
+3. **Tag the commit**
+   - `git tag v1.2.0 && git push origin v1.2.0` (replace with the version you chose).
 
-## 2. Publishing snapshots
+## 2. Trigger the JitPack build
 
-Snapshots automatically go to `https://oss.sonatype.org/content/repositories/snapshots/` because the Gradle script derives the repository from the version suffix. Publish with:
+1. Navigate to [https://jitpack.io/#mbayou/kick4k](https://jitpack.io/#mbayou/kick4k).
+2. Select the new tag and click **Get it**.
+3. Wait for the build log to show `BUILD SUCCESS`. JitPack runs `./gradlew` using Java 21 (configured via
+   [`jitpack.yml`](../jitpack.yml)).
 
-```bash
-./gradlew publish --console=plain --no-daemon
+Once complete, the artifact is available at:
+
+```
+implementation("com.github.mbayou:kick4k:1.2.0")
 ```
 
-## 3. Publishing releases
+If you need to rebuild a tag (e.g., after fixing the build), use the **Rebuild** button on JitPack. For consumers who
+need snapshots, they can depend on branches or commit hashes (`com.github.mbayou:kick4k:-SNAPSHOT`).
 
-1. Update `version` in `build.gradle.kts` to the desired semantic version _without_ `-SNAPSHOT`.
-2. Commit and tag the release commit (e.g., `git tag v1.1.0`).
-3. Run the publish task:
-   ```bash
-   ./gradlew clean publish --console=plain --no-daemon
-   ```
-4. Create the release in your Git hosting provider referencing the tag.
+## 3. Update documentation
 
-Gradle will automatically select `https://oss.sonatype.org/service/local/staging/deploy/maven2/` for non-snapshot versions.
+- Update the README badge or installation instructions if the version changes.
+- Optionally create a GitHub Release pointing to the tag with release notes.
 
-## 4. Other hosts
-
-If you later decide to push Kick4k to a different repository:
-
-1. Add the appropriate `maven { ... }` block inside the `publishing.repositories` section in `build.gradle.kts`.
-2. Provide the necessary credentials/signing configuration in your Gradle properties.
-3. Re-run `./gradlew publish` targeting the new repository name, e.g. `./gradlew publishAllPublicationsToMyRepoRepository`.
-
-Documenting the release steps in your project wiki or CI pipeline will make the process reproducible for new maintainers.
+That’s it—no OSSRH credentials or Sonatype staging steps are required anymore.
