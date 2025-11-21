@@ -3,54 +3,59 @@ package com.mbayou.kick4k.channels
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.mbayou.kick4k.KickConfiguration
 import com.mbayou.kick4k.api.ApiClient
-import com.mbayou.kick4k.authorization.AuthorizationClient
 import java.net.http.HttpClient
 
 class ChannelsClient(
     httpClient: HttpClient,
     mapper: ObjectMapper,
     configuration: KickConfiguration,
-    authorization: AuthorizationClient,
-) : ApiClient(httpClient, mapper, configuration, authorization) {
+): ApiClient(httpClient, mapper, configuration) {
 
-    fun getCurrentChannel(): Channel = getChannels().first()
+    fun getCurrentChannel(accessToken: String): Channel = getChannels(accessToken).first()
 
-    fun getChannels(): List<Channel> {
+    fun getChannels(accessToken: String): List<Channel> {
         return get(configuration.channels)
+            .withAccessToken(accessToken)
             .send(responseType<List<Channel>>()) ?: emptyList()
     }
 
-    fun getChannels(vararg broadcasterUserIds: Int): List<Channel> {
-        return get(configuration.channels)
-            .queryParams(mapOf("broadcaster_user_id" to broadcasterUserIds))
-            .send(responseType<List<Channel>>()) ?: emptyList()
-    }
-
-    fun getChannelsByUserIds(broadcasterUserIds: List<Int>): List<Channel> {
+    fun getChannels(accessToken: String, vararg broadcasterUserIds: Int): List<Channel> {
         return get(configuration.channels)
             .queryParams(mapOf("broadcaster_user_id" to broadcasterUserIds))
+            .withAccessToken(accessToken)
             .send(responseType<List<Channel>>()) ?: emptyList()
     }
 
-    fun getChannel(broadcasterUserId: Int): Channel = getChannels(broadcasterUserId).first()
+    fun getChannelsByUserIds(accessToken: String, broadcasterUserIds: List<Int>): List<Channel> {
+        return get(configuration.channels)
+            .queryParams(mapOf("broadcaster_user_id" to broadcasterUserIds))
+            .withAccessToken(accessToken)
+            .send(responseType<List<Channel>>()) ?: emptyList()
+    }
 
-    fun getChannelsBySlugs(slugs: List<String>): List<Channel> {
+    fun getChannel(accessToken: String, broadcasterUserId: Int): Channel =
+        getChannels(accessToken, broadcasterUserId).first()
+
+    fun getChannelsBySlugs(accessToken: String, slugs: List<String>): List<Channel> {
         return get(configuration.channels)
             .queryParams(mapOf("slug" to slugs))
+            .withAccessToken(accessToken)
             .send(responseType<List<Channel>>()) ?: emptyList()
     }
 
-    fun getChannels(vararg slugs: String): List<Channel> {
+    fun getChannels(accessToken: String, vararg slugs: String): List<Channel> {
         return get(configuration.channels)
             .queryParams(mapOf("slug" to slugs))
+            .withAccessToken(accessToken)
             .send(responseType<List<Channel>>()) ?: emptyList()
     }
 
-    fun getChannel(slug: String): Channel = getChannels(slug).first()
+    fun getChannel(accessToken: String, slug: String): Channel = getChannels(accessToken, slug).first()
 
-    fun updateChannel(request: UpdateChannelRequest) {
+    fun updateChannel(accessToken: String, request: UpdateChannelRequest) {
         patch(configuration.channels)
             .body(request)
+            .withAccessToken(accessToken)
             .send(responseType<Unit>())
     }
 }

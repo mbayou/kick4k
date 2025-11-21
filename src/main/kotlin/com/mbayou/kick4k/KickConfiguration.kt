@@ -1,9 +1,6 @@
 package com.mbayou.kick4k
 
-import com.mbayou.kick4k.authorization.RefreshTokenStore
-
 data class KickConfiguration(
-    val tokenStore: RefreshTokenStore,
     val clientId: String,
     val clientSecret: String,
     val redirectUri: String,
@@ -29,7 +26,6 @@ data class KickConfiguration(
     }
 
     class Builder {
-        private var tokenStore: RefreshTokenStore? = null
         private var clientId: String? = null
         private var clientSecret: String? = null
         private var redirectUri: String? = null
@@ -49,7 +45,6 @@ data class KickConfiguration(
         private var publicKey: String = "/public-key"
         private var events: String = "/events/subscriptions"
 
-        fun tokenStore(tokenStore: RefreshTokenStore) = apply { this.tokenStore = tokenStore }
         fun clientId(clientId: String) = apply { this.clientId = clientId }
         fun clientSecret(clientSecret: String) = apply { this.clientSecret = clientSecret }
         fun redirectUri(redirectUri: String) = apply { this.redirectUri = redirectUri }
@@ -70,13 +65,11 @@ data class KickConfiguration(
         fun events(events: String) = apply { this.events = events }
 
         fun build(): KickConfiguration {
-            val tokenStore = requireNotNull(this.tokenStore) { "TokenStore is required" }
             val clientId = requireNotNull(this.clientId) { "ClientId is required" }
             val clientSecret = requireNotNull(this.clientSecret) { "ClientSecret is required" }
             val redirectUri = requireNotNull(this.redirectUri) { "RedirectUri is required" }
 
             return KickConfiguration(
-                tokenStore = tokenStore,
                 clientId = clientId,
                 clientSecret = clientSecret,
                 redirectUri = redirectUri,

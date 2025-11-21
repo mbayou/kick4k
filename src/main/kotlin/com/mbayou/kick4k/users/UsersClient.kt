@@ -3,37 +3,39 @@ package com.mbayou.kick4k.users
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.mbayou.kick4k.KickConfiguration
 import com.mbayou.kick4k.api.ApiClient
-import com.mbayou.kick4k.authorization.AuthorizationClient
 import java.net.http.HttpClient
 
 class UsersClient(
     httpClient: HttpClient,
     mapper: ObjectMapper,
     configuration: KickConfiguration,
-    authorization: AuthorizationClient,
-) : ApiClient(httpClient, mapper, configuration, authorization) {
+): ApiClient(httpClient, mapper, configuration) {
 
-    fun tokenIntrospect(): TokenIntrospect? {
+    fun tokenIntrospect(accessToken: String): TokenIntrospect? {
         return post(configuration.tokenIntrospect)
+            .withAccessToken(accessToken)
             .send(responseType<TokenIntrospect>())
     }
 
-    fun getCurrentUser(): User = getUsers().first()
+    fun getCurrentUser(accessToken: String): User = getUsers(accessToken).first()
 
-    fun getUsers(): List<User> {
+    fun getUsers(accessToken: String): List<User> {
         return get(configuration.users)
+            .withAccessToken(accessToken)
             .send(responseType<List<User>>()) ?: emptyList()
     }
 
-    fun getUsers(vararg ids: Int): List<User> {
+    fun getUsers(accessToken: String, vararg ids: Int): List<User> {
         return get(configuration.users)
             .queryParams(mapOf("id" to ids))
+            .withAccessToken(accessToken)
             .send(responseType<List<User>>()) ?: emptyList()
     }
 
-    fun getUsers(ids: List<Int>): List<User> {
+    fun getUsers(accessToken: String, ids: List<Int>): List<User> {
         return get(configuration.users)
             .queryParams(mapOf("id" to ids))
+            .withAccessToken(accessToken)
             .send(responseType<List<User>>()) ?: emptyList()
     }
 }

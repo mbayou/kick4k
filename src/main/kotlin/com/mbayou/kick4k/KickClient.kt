@@ -8,7 +8,6 @@ import com.sun.net.httpserver.HttpServer
 import com.mbayou.kick4k.api.ApiResponse
 import com.mbayou.kick4k.api.ApiResponseDeserializer
 import com.mbayou.kick4k.authorization.AuthorizationClient
-import com.mbayou.kick4k.authorization.RefreshTokenStore
 import com.mbayou.kick4k.categories.CategoriesClient
 import com.mbayou.kick4k.channels.ChannelsClient
 import com.mbayou.kick4k.chat.ChatClient
@@ -50,16 +49,15 @@ class KickClient(configuration: KickConfiguration) {
             .registerModule(JavaTimeModule())
             .registerModule(serializerModule)
 
-        val tokenStore: RefreshTokenStore = configuration.tokenStore
-        this.authorizationClient = AuthorizationClient(httpClient, objectMapper, configuration, tokenStore)
-        this.categoriesClient = CategoriesClient(httpClient, objectMapper, configuration, authorizationClient)
-        this.usersClient = UsersClient(httpClient, objectMapper, configuration, authorizationClient)
-        this.channelsClient = ChannelsClient(httpClient, objectMapper, configuration, authorizationClient)
-        this.chatClient = ChatClient(httpClient, objectMapper, configuration, authorizationClient)
-        this.moderationClient = ModerationClient(httpClient, objectMapper, configuration, authorizationClient)
-        this.livestreamsClient = LivestreamsClient(httpClient, objectMapper, configuration, authorizationClient)
-        this.publicKeyClient = PublicKeyClient(httpClient, objectMapper, configuration, authorizationClient)
-        this.eventsClient = EventsClient(httpClient, objectMapper, configuration, authorizationClient)
+        this.authorizationClient = AuthorizationClient(httpClient, objectMapper, configuration)
+        this.categoriesClient = CategoriesClient(httpClient, objectMapper, configuration)
+        this.usersClient = UsersClient(httpClient, objectMapper, configuration)
+        this.channelsClient = ChannelsClient(httpClient, objectMapper, configuration)
+        this.chatClient = ChatClient(httpClient, objectMapper, configuration)
+        this.moderationClient = ModerationClient(httpClient, objectMapper, configuration)
+        this.livestreamsClient = LivestreamsClient(httpClient, objectMapper, configuration)
+        this.publicKeyClient = PublicKeyClient(httpClient, objectMapper, configuration)
+        this.eventsClient = EventsClient(httpClient, objectMapper, configuration)
 
         this.signatureVerifier = KickSignatureVerifier(publicKeyClient)
         this.eventDispatcher = KickEventDispatcher(objectMapper)

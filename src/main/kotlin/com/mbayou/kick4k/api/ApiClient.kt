@@ -3,7 +3,6 @@ package com.mbayou.kick4k.api
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.mbayou.kick4k.KickConfiguration
-import com.mbayou.kick4k.authorization.AuthorizationClient
 import java.io.IOException
 import java.lang.reflect.Array
 import java.net.URI
@@ -18,7 +17,6 @@ abstract class ApiClient(
     protected val httpClient: HttpClient,
     protected val mapper: ObjectMapper,
     protected val configuration: KickConfiguration,
-    protected val authorization: AuthorizationClient,
 ) {
     protected fun get(path: String): RequestBuilder = RequestBuilder("GET", path)
     protected fun post(path: String): RequestBuilder = RequestBuilder("POST", path)
@@ -28,6 +26,8 @@ abstract class ApiClient(
     inner class RequestBuilder(private val method: String, private var path: String) {
         private var queryParams: MutableMap<String, Any?>? = null
         private var bodyObject: Any? = null
+        private var accessToken: String? = null
+        private var enforceAccessToken: Boolean = true
 
         fun queryParams(params: Map<String, Any?>?): RequestBuilder = apply {
             if (params != null) {
@@ -59,14 +59,28 @@ abstract class ApiClient(
             }
         }
 
+        fun withAccessToken(accessToken: String): RequestBuilder = apply {
+            this.accessToken = accessToken
+        }
+
+        fun withoutAccessToken(): RequestBuilder = apply {
+            enforceAccessToken = false
+        }
+
         fun body(bodyObject: Any?): RequestBuilder = apply { this.bodyObject = bodyObject }
 
         fun <T> send(typeRef: TypeReference<ApiResponse<T>>): T? {
             val url = buildUrl(configuration.baseUrl + path, queryParams)
             val requestBuilder = HttpRequest.newBuilder()
                 .uri(URI.create(url))
-                .header("Authorization", "Bearer ${authorization.getAccessToken()}")
                 .header("Accept", "application/json")
+
+            val token = accessToken
+            if (enforceAccessToken) {
+                requestBuilder.header("Authorization", "Bearer ${token ?: error("Access token is required for this request")}")
+            } else if (token != null) {
+                requestBuilder.header("Authorization", "Bearer $token")
+            }
 
             if ("GET".equals(method, ignoreCase = true)) {
                 requestBuilder.GET()

@@ -5,18 +5,22 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.mbayou.kick4k.KickConfiguration
 import com.mbayou.kick4k.api.ApiClient
-import com.mbayou.kick4k.authorization.AuthorizationClient
 import java.net.http.HttpClient
 
 class PublicKeyClient(
     httpClient: HttpClient,
     mapper: ObjectMapper,
     configuration: KickConfiguration,
-    authorization: AuthorizationClient,
-) : ApiClient(httpClient, mapper, configuration, authorization) {
+): ApiClient(httpClient, mapper, configuration) {
 
-    fun getPublicKey(): String {
-        return get(configuration.publicKey)
+    fun getPublicKey(accessToken: String? = null): String {
+        val request = get(configuration.publicKey)
+        if (accessToken == null) {
+            request.withoutAccessToken()
+        } else {
+            request.withAccessToken(accessToken)
+        }
+        return request
             .send(responseType<ApiPublicKey>())
             ?.publicKey ?: throw IllegalStateException("No public key returned")
     }

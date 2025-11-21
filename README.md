@@ -16,7 +16,7 @@ A native Kotlin library for interacting with the Kick.com streaming platform API
 - **Webhook Support**: Built-in webhook receiver with signature verification, for demonstration purposes
 - **Event System**: Type-safe event handling for real-time notifications
 - **Flexible Configuration**: Customizable endpoints and settings
-- **Token Management**: Automatic token refresh and storage
+- **Stateless Auth**: Bring your own tokens per call; helpers for code exchange and refresh
 
 ## Installation
 
@@ -58,19 +58,11 @@ Looking for a deeper walkthrough of OAuth, webhooks, and the major APIs? Check t
 ```kotlin
 import com.mbayou.kick4k.KickClient
 import com.mbayou.kick4k.KickConfiguration
-import com.mbayou.kick4k.authorization.RefreshTokenStore
-
-class InMemoryTokenStore : RefreshTokenStore {
-    private var token: String? = null
-    override fun getRefreshToken(): String? = token
-    override fun notifyRefreshTokenRoll(newRefreshToken: String?) { token = newRefreshToken }
-}
 
 val config = KickConfiguration.builder()
     .clientId("your-client-id")
     .clientSecret("your-client-secret")
     .redirectUri("http://localhost:8080/callback")
-    .tokenStore(InMemoryTokenStore())
     .build()
 
 val client = KickClient(config)
@@ -94,26 +86,36 @@ val authUrl = client.authorization().getAuthorizationUrl(
 println("Visit: $authUrl")
 
 // After user authorization, exchange code for tokens
-val tokens = client.authorization().exchangeCodeForToken("code-from-callback", codeVerifier)
-client.authorization().setTokens(tokens)
+val tokenResponse = client.authorization().exchangeCodeForToken("code-from-callback", codeVerifier)
+val accessToken = tokenResponse.accessToken
+val refreshToken = tokenResponse.refreshToken
+
+// Later, refresh explicitly when you need a new access token
+val refreshed = client.authorization().refreshWithToken(refreshToken)
+val newAccessToken = refreshed.accessToken
 ```
 
 ### 3. Basic API Usage
 
 ```kotlin
 // Get current user
-val currentUser = client.users().getCurrentUser()
+val currentUser = client.users().getCurrentUser(accessToken)
 println("Hello, ${currentUser.displayName}")
 
 // Get current channel
-val channel = client.channels().getCurrentChannel()
+val channel = client.channels().getCurrentChannel(accessToken)
 println("Channel: ${channel.slug}")
 
 // Send a chat message
-client.chat().postChatMessage("Hello from Kick4k!", channel.broadcasterUserId)
+client.chat().postChatMessage(accessToken, PostChatMessageRequest.builder()
+    .broadcasterUserId(channel.broadcasterUserId)
+    .content("Hello from Kick4k!")
+    .build())
 
 // Update channel information
-val updated = client.channels().updateChannel("New Stream Title")
+val updated = client.channels().updateChannel(accessToken, UpdateChannelRequest.builder()
+    .streamTitle("New Stream Title")
+    .build())
 println("Stream title updated to ${updated.streamTitle}")
 ```
 
@@ -155,7 +157,7 @@ val subscription = EventSubscriptionRequest.builder()
     .method(EventSubscriptionRequest.Method.WEBHOOK)
     .build()
 
-client.events().postEventsSubscription(subscription)
+client.events().postEventsSubscription(accessToken, subscription)
 ```
 
 ## Acknowledgements
@@ -198,7 +200,7 @@ client.moderation().deleteModerationBans(
 
 ```kotlin
 val stream = client.livestreams()
-    .getLivestream(channel.broadcasterUserId)
+    .getLivestream(accessToken, channel.broadcasterUserId)
 
 stream?.let {
     println("Currently streaming: ${it.streamTitle}")
@@ -212,17 +214,17 @@ val searchRequest = GetLivestreamsRequest.builder()
     .sort(GetLivestreamsRequest.Sort.VIEWER_COUNT)
     .build()
 
-val streams = client.livestreams().getLivestreams(searchRequest)
+val streams = client.livestreams().getLivestreams(accessToken, searchRequest)
 ```
 
 ### Categories
 
 ```kotlin
 // Search categories
-val categories = client.categories().getCategories("gaming")
+val categories = client.categories().getCategories(accessToken, "gaming")
 
 // Get specific category
-val category = client.categories().getCategory(12)
+val category = client.categories().getCategory(accessToken, 12)
 println("Category: ${category.name}")
 ```
 
@@ -234,26 +236,6 @@ for the full checklist.
 
 ## Configuration
 
-### Custom Token Storage
-
-Implement the `RefreshTokenStore` interface for custom token storage:
-
-```kotlin
-class DatabaseTokenStore(
-    private val database: TokenDao,
-) : RefreshTokenStore {
-    override fun getRefreshToken(): String? {
-        // Retrieve from database
-        return database.getRefreshToken()
-    }
-
-    override fun notifyRefreshTokenRoll(newRefreshToken: String?) {
-        // Store in database
-        database.saveRefreshToken(newRefreshToken)
-    }
-}
-```
-
 ### Custom Configuration
 
 ```kotlin
@@ -261,7 +243,6 @@ val config = KickConfiguration.builder()
     .clientId("your-client-id")
     .clientSecret("your-client-secret")
     .redirectUri("https://your-app.com/callback")
-    .tokenStore(DatabaseTokenStore())
     .baseUrl("https://api.kick.com/public/v1") // Custom API base URL
     .oAuthHost("https://id.kick.com") // Custom OAuth host
     .build()
@@ -273,7 +254,7 @@ Kick4k throws specific exceptions for different error conditions:
 
 ```kotlin
 try {
-    val user = client.users().getCurrentUser()
+    val user = client.users().getCurrentUser(accessToken)
     println("Fetched ${user.displayName}")
 } catch (apiException: ApiException) {
     System.err.println("API error ${apiException.statusCode}: ${apiException.message}")

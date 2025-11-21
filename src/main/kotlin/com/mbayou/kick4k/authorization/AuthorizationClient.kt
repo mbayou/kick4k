@@ -12,7 +12,6 @@ import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
 import java.security.NoSuchAlgorithmException
 import java.security.SecureRandom
-import java.time.Instant
 import java.util.Base64
 import java.util.StringJoiner
 import java.util.UUID
@@ -21,11 +20,7 @@ class AuthorizationClient(
     private val httpClient: HttpClient,
     private val mapper: ObjectMapper,
     private val configuration: KickConfiguration,
-    private val refreshToken: RefreshTokenStore,
 ) {
-    private var accessTokenValue: String? = null
-    private var expiresAt: Instant = Instant.EPOCH
-
     fun getAuthorizationUrl(scopeList: List<Scope>, codeChallenge: String): String {
         val joiner = StringJoiner("&", "${configuration.oAuthHost}${configuration.authorizationEndpoint}?", "")
         joiner.add("client_id=${encodeUrl(configuration.clientId)}")
@@ -51,42 +46,15 @@ class AuthorizationClient(
         return postOAuthTokenRequest(body)
     }
 
-    fun refreshAccessToken(): OAuthTokenResponse {
+    fun refreshWithToken(refreshToken: String): OAuthTokenResponse {
         val body = mapOf(
-            "refresh_token" to refreshToken.getRefreshToken(),
+            "refresh_token" to refreshToken,
             "client_id" to configuration.clientId,
             "client_secret" to configuration.clientSecret,
             "grant_type" to "refresh_token",
         )
 
-        val newToken = postOAuthTokenRequest(body)
-        refreshToken.notifyRefreshTokenRoll(newToken.refreshToken)
-        return newToken
-    }
-
-    fun getAccessToken(): String {
-        val current = accessTokenValue
-        val now = Instant.now()
-        if (current == null || now.isAfter(expiresAt.minusSeconds(10))) {
-            val response = refreshAccessToken()
-            setTokens(response)
-            return response.accessToken
-        }
-        return current
-    }
-
-    fun setTokens(oAuthToken: OAuthTokenResponse) {
-        accessTokenValue = oAuthToken.accessToken
-        refreshToken.notifyRefreshTokenRoll(oAuthToken.refreshToken)
-        expiresAt = Instant.now().plusSeconds(oAuthToken.expiresIn.toLong())
-    }
-
-    fun setAccessToken(accessToken: String) {
-        this.accessTokenValue = accessToken
-    }
-
-    fun setExpiresAt(expiresAt: Instant) {
-        this.expiresAt = expiresAt
+        return postOAuthTokenRequest(body)
     }
 
     private fun postOAuthTokenRequest(body: Map<String, String>): OAuthTokenResponse {
