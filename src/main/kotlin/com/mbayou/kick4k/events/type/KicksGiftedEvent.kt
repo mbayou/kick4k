@@ -5,10 +5,10 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import java.time.Instant
 
 data class KicksGiftedEvent @JsonCreator constructor(
-    @JsonProperty("broadcaster") val broadcaster: EventUser?,
-    @JsonProperty("sender") val sender: EventUser?,
-    @JsonProperty("gift") val gift: KickGift?,
-    @JsonProperty("created_at") val createdAt: Instant?,
+    @JsonProperty("broadcaster") val broadcaster: EventUser,
+    @JsonProperty("sender") val sender: EventUser,
+    @JsonProperty("gift") val gift: KickGift,
+    @JsonProperty("created_at") val createdAt: Instant,
 ) : KickEvent() {
     companion object {
         @JvmStatic
@@ -19,10 +19,10 @@ data class KicksGiftedEvent @JsonCreator constructor(
     }
 
     data class KickGift @JsonCreator constructor(
-        @JsonProperty("amount") val amount: Int?,
-        @JsonProperty("name") val name: String?,
-        @JsonProperty("type") val type: String?,
-        @JsonProperty("tier") val tier: String?,
-        @JsonProperty("message") val message: String?,
+        @JsonProperty("amount") val amount: Int,
+        @JsonProperty("name") val name: String,
+        @JsonProperty("type") val type: String,
+        @JsonProperty("tier") val tier: String,
+        @JsonProperty("message") val message: String,
     )
 }

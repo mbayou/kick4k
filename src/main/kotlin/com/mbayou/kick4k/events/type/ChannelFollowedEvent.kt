@@ -4,8 +4,8 @@ import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonProperty
 
 data class ChannelFollowedEvent @JsonCreator constructor(
-    @JsonProperty("broadcaster") val broadcaster: EventUser?,
-    @JsonProperty("follower") val follower: EventUser?,
+    @JsonProperty("broadcaster") val broadcaster: EventUser,
+    @JsonProperty("follower") val follower: EventUser,
 ) : KickEvent() {
     companion object {
         @JvmStatic

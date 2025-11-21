@@ -5,11 +5,11 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import java.time.Instant
 
 data class ChannelSubscriptionCreatedEvent @JsonCreator constructor(
-    @JsonProperty("broadcaster") val broadcaster: EventUser?,
-    @JsonProperty("subscriber") val subscriber: EventUser?,
-    @JsonProperty("duration") val duration: Int?,
-    @JsonProperty("created_at") val createdAt: Instant?,
-    @JsonProperty("expires_at") val expiresAt: Instant?,
+    @JsonProperty("broadcaster") val broadcaster: EventUser,
+    @JsonProperty("subscriber") val subscriber: EventUser,
+    @JsonProperty("duration") val duration: Int,
+    @JsonProperty("created_at") val createdAt: Instant,
+    @JsonProperty("expires_at") val expiresAt: Instant,
 ) : KickEvent() {
     companion object {
         @JvmStatic

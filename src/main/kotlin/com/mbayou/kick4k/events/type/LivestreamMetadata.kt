@@ -5,8 +5,8 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import com.mbayou.kick4k.categories.Category
 
 data class LivestreamMetadata @JsonCreator constructor(
-    @JsonProperty("title") val title: String?,
-    @JsonProperty("language") val language: String?,
-    @JsonProperty("has_mature_content") val hasMatureContent: Boolean?,
-    @JsonProperty("category") val category: Category?,
+    @JsonProperty("title") val title: String,
+    @JsonProperty("language") val language: String,
+    @JsonProperty("has_mature_content") val hasMatureContent: Boolean,
+    @JsonProperty("category") val category: Category,
 )
