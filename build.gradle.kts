@@ -16,7 +16,7 @@ kotlin {
     jvmToolchain(21)
 }
 
-group = "com.mbayou"
+group = "com.github.mbayou"
 version = "1.1.0-SNAPSHOT"
 
 repositories {

@@ -26,7 +26,7 @@ Add the dependency to your `build.gradle.kts` (or Groovy equivalent):
 
 ```kotlin
 dependencies {
-    implementation("com.mbayou:kick4k:1.1.0")
+    implementation("com.github.mbayou:kick4k:1.1.0")
 }
 ```
 
