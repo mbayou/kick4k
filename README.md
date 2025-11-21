@@ -172,6 +172,7 @@ Huge thanks to **teksusik** for creating the original Kick4J project that inspir
 - `livestream.status.updated` - Stream start/stop
 - `livestream.metadata.updated` - Stream title/category changes
 - `moderation.banned` - User bans/timeouts
+- `kicks.gifted` - Kicks currency gifts
 
 ### Moderation
 

@@ -6,7 +6,7 @@ import java.time.Instant
 
 data class ChannelSubscriptionGiftsEvent @JsonCreator constructor(
     @JsonProperty("broadcaster") val broadcaster: EventUser?,
-    @JsonProperty("subscriber") val gifter: EventUser?,
+    @JsonProperty("gifter") val gifter: EventUser?,
     @JsonProperty("giftees") val giftees: List<EventUser>?,
     @JsonProperty("created_at") val createdAt: Instant?,
     @JsonProperty("expires_at") val expiresAt: Instant?,
