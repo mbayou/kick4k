@@ -76,12 +76,12 @@ class ChatMessageSentEventTest : KickEventDispatcherTest() {
         assertEquals(2, emotes!!.size)
         val firstEmote = emotes[0]
         assertEquals("12345", firstEmote.emoteId)
-        assertEquals("0", firstEmote.positions!![0].start)
-        assertEquals("7", firstEmote.positions!![0].end)
+        assertEquals(0, firstEmote.positions[0].start)
+        assertEquals(7, firstEmote.positions[0].end)
         val secondEmote = emotes[1]
         assertEquals("67890", secondEmote.emoteId)
-        assertEquals("20", secondEmote.positions!![0].start)
-        assertEquals("25", secondEmote.positions!![0].end)
+        assertEquals(20, secondEmote.positions[0].start)
+        assertEquals(25, secondEmote.positions[0].end)
 
         assertEquals(Instant.parse("2025-01-14T16:08:06Z"), event.createdAt)
     }
