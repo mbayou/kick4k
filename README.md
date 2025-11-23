@@ -79,14 +79,19 @@ val codeChallenge = client.authorization().generateCodeChallenge(codeVerifier)
 
 // Get authorization URL
 val authUrl = client.authorization().getAuthorizationUrl(
-    listOf(Scope.USER_READ, Scope.CHANNEL_READ, Scope.CHAT_WRITE),
-    codeChallenge
+    scopeList = listOf(Scope.USER_READ, Scope.CHANNEL_READ, Scope.CHAT_WRITE),
+    codeChallenge = codeChallenge,
+    redirectUri = "http://localhost:8080/callback" // Optional override per flow
 )
 
 println("Visit: $authUrl")
 
 // After user authorization, exchange code for tokens
-val tokenResponse = client.authorization().exchangeCodeForToken("code-from-callback", codeVerifier)
+val tokenResponse = client.authorization().exchangeCodeForToken(
+    code = "code-from-callback",
+    codeVerifier = codeVerifier,
+    redirectUri = "http://localhost:8080/callback"
+)
 val accessToken = tokenResponse.accessToken
 val refreshToken = tokenResponse.refreshToken
 
@@ -94,6 +99,11 @@ val refreshToken = tokenResponse.refreshToken
 val refreshed = client.authorization().refreshWithToken(refreshToken)
 val newAccessToken = refreshed.accessToken
 ```
+
+If your Kick application is configured with multiple redirect URIs (for example dev/staging/prod),
+store the URI you used when generating the authorization URL and provide it to
+`getAuthorizationUrl` and `exchangeCodeForToken`. When omitted those methods fall back to the
+`redirectUri` defined in `KickConfiguration`.
 
 ### 3. Basic API Usage
 

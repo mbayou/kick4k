@@ -21,11 +21,12 @@ class AuthorizationClient(
     private val mapper: ObjectMapper,
     private val configuration: KickConfiguration,
 ) {
-    fun getAuthorizationUrl(scopeList: List<Scope>, codeChallenge: String): String {
+    fun getAuthorizationUrl(scopeList: List<Scope>, codeChallenge: String, redirectUri: String? = null): String {
+        val redirect = redirectUri ?: configuration.redirectUri
         val joiner = StringJoiner("&", "${configuration.oAuthHost}${configuration.authorizationEndpoint}?", "")
         joiner.add("client_id=${encodeUrl(configuration.clientId)}")
         joiner.add("response_type=code")
-        joiner.add("redirect_uri=${encodeUrl(configuration.redirectUri)}")
+        joiner.add("redirect_uri=${encodeUrl(redirect)}")
         joiner.add("state=${encodeUrl(UUID.randomUUID().toString())}")
         val scopes = scopeList.joinToString(" ") { it.scope }
         joiner.add("scope=${encodeUrl(scopes)}")
@@ -34,12 +35,13 @@ class AuthorizationClient(
         return joiner.toString()
     }
 
-    fun exchangeCodeForToken(code: String, codeVerifier: String): OAuthTokenResponse {
+    fun exchangeCodeForToken(code: String, codeVerifier: String, redirectUri: String? = null): OAuthTokenResponse {
+        val redirect = redirectUri ?: configuration.redirectUri
         val body = mapOf(
             "code" to code,
             "client_id" to configuration.clientId,
             "client_secret" to configuration.clientSecret,
-            "redirect_uri" to configuration.redirectUri,
+            "redirect_uri" to redirect,
             "grant_type" to "authorization_code",
             "code_verifier" to codeVerifier,
         )

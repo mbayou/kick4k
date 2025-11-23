@@ -23,14 +23,19 @@ val codeVerifier = AuthorizationClient.generateCodeVerifier()
 val codeChallenge = AuthorizationClient.generateCodeChallenge(codeVerifier)
 
 val authUrl = client.authorization().getAuthorizationUrl(
-    listOf(Scope.USER_READ, Scope.CHANNEL_READ, Scope.CHAT_WRITE),
-    codeChallenge,
+    scopeList = listOf(Scope.USER_READ, Scope.CHANNEL_READ, Scope.CHAT_WRITE),
+    codeChallenge = codeChallenge,
+    redirectUri = "http://localhost:8080/callback"
 )
 println("Visit $authUrl and approve the app")
 
 // Inside your redirect handler:
 val code = parameters["code"] ?: error("Missing code")
-val tokens = client.authorization().exchangeCodeForToken(code, codeVerifier)
+val tokens = client.authorization().exchangeCodeForToken(
+    code = code,
+    codeVerifier = codeVerifier,
+    redirectUri = "http://localhost:8080/callback"
+)
 client.authorization().setTokens(tokens)
 ```
 
@@ -40,6 +45,10 @@ Key points:
   returned `state` yourself if you need CSRF protection.
 - Call `setTokens` right away so that the `RefreshTokenStore` sees the latest refresh token, even before any API call.
 - Once you have tokens, every other client (`users()`, `channels()`, and so on) automatically attaches the bearer token.
+
+> Tip: If your app has multiple redirect URIs, persist the one used for each authorization attempt and pass it to both
+> `getAuthorizationUrl` and `exchangeCodeForToken`. Leaving the argument out falls back to the default URI in
+> `KickConfiguration`.
 
 ## 2. Refresh token system
 
