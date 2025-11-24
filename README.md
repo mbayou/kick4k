@@ -296,6 +296,14 @@ try {
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
+## Sponsors
+
+Diamond Sponsor: [ai_licia](https://getailicia.com)
+
+[![ai_licia full logo](fullLogo.png)](https://getailicia.com)
+
+Interested in sponsoring Kick4k? Open a [sponsorship inquiry](https://github.com/mbayou/kick4k/issues/new?title=Sponsorship%20inquiry&body=Please%20share%20a%20few%20sentences%20about%20your%20team%2C%20project%2C%20and%20timeline%20so%20we%20can%20follow%20up.) and we will get back to you quickly.
+
 ## Support
 
 For questions, issues, or feature requests, please open an issue on the GitHub repository.
