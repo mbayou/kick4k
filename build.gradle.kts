@@ -17,7 +17,7 @@ kotlin {
 }
 
 group = "com.github.mbayou"
-version = "1.1.0-SNAPSHOT"
+version = "1.4.4"
 
 repositories {
     mavenCentral()

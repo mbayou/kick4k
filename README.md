@@ -26,7 +26,7 @@ Add the dependency to your `build.gradle.kts` (or Groovy equivalent):
 
 ```kotlin
 dependencies {
-    implementation("com.github.mbayou:kick4k:1.1.0")
+    implementation("com.github.mbayou:kick4k:1.4.4")
 }
 ```
 
@@ -41,13 +41,13 @@ repositories {
 }
 
 dependencies {
-    implementation("com.github.mbayou:kick4k:1.1.0")
+    implementation("com.github.mbayou:kick4k:1.4.4")
     // or use a specific git tag / commit
 }
 ```
 
-Every push to GitHub can be built on JitPack; tagging a release (for example `v1.1.0`) gives you a stable coordinate
-`com.github.mbayou:kick4k:1.1.0`. See [docs/PUBLISHING.md](docs/PUBLISHING.md) for the release checklist.
+Every push to GitHub can be built on JitPack; tagging a release (for example `1.4.4`) gives you a stable coordinate
+`com.github.mbayou:kick4k:1.4.4`. See [docs/PUBLISHING.md](docs/PUBLISHING.md) for the release checklist.
 
 ## Quick Start
 
